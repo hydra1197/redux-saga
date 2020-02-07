@@ -1,61 +1,86 @@
-import React, {useState} from 'react';
-import {
-  Button,
-  Grid,
-  withStyles,
-} from '@material-ui/core';
+import React, { useEffect } from 'react';
+import { connect } from 'react-redux';
+import { Button, Grid, withStyles } from '@material-ui/core';
 import { Add } from '@material-ui/icons';
 import { STATUSES } from '../../constants';
-import { TaskList, TaskForm } from '../../components';
+import { TaskList, SearchBox } from '../../components';
+import TaskForm from '../TaskForm';
+import { fetchTaskList, searchTask, setTaskEditData, deleteTask } from '../../actions/task';
+import { setModalData } from '../../actions/ui';
 import styles from './styles';
 
-const TaskBoard = ({ classes }) => {
-  const [openDialog, setOpenDialog] = useState(false);
-
-  const listTask = [
-    {
-      id: 1,
-      title: 'Read book',
-      description: 'Read material UI book',
-      status: 0,
-    },
-    {
-      id: 2,
-      title: 'Play football',
-      description: 'With my friend',
-      status: 1,
-    },
-    {
-      id: 3,
-      title: 'Play game',
-      description: 'Contra, Mario',
-      status: 2,
-    }
-  ];
+const TaskBoard = ({ classes, taskList, fetchTaskList, searchTask, setModalData, setTaskEditData, deleteTask }) => {
+  useEffect(() => {
+    fetchTaskList();
+  }, [fetchTaskList]);
 
   const renderBoard = () => {
     return (
       <Grid container spacing={3}>
         { STATUSES.map((status, index) => {
-          const tasks = listTask.filter(task => task.status === status.value);
+          const tasks = taskList.filter(task => task.status === status.value);
 
-          return <TaskList key={index} status={status} tasks={tasks} />;
+          return (
+            <TaskList
+              key={index}
+              status={status}
+              tasks={tasks}
+              onClickUpdate={task => handleOpenModal('Cập nhật công việc', task)}
+              onClickDelete={taskId => confirmDelete(taskId)}
+            />
+          );
         })}
       </Grid>
     );
   };
 
+  const handleSearch = (e) => {
+    searchTask(e.target.value);
+  };
+
+  const confirmDelete = taskId => {
+    if (window.confirm('Bạn có muốn xóa công việc này ?')) {
+      deleteTask(taskId);
+    }
+  };
+
+  const handleOpenModal = (title, task = {}) => {
+    setTaskEditData(task);
+    setModalData(true, title, <TaskForm />);
+  };
+
   return (
     <div className={classes.wrapper}>
-      <Button variant="contained" color='primary' onClick={() => setOpenDialog(true)}>
+      <Button variant="contained" color='primary' onClick={() => handleOpenModal('Thêm công việc')}>
         <Add /> Thêm mới công việc
       </Button>
 
-      { renderBoard() }
+      <Button variant="contained" color='primary' onClick={() => fetchTaskList()} style={{ marginLeft: 15 }}>
+        Load Data
+      </Button>
 
-      <TaskForm onClose={() => setOpenDialog(false)} open={openDialog} />
+      <SearchBox onChange={handleSearch} />
+
+      { renderBoard() }
     </div>
   );
 };
 
-export default withStyles(styles)(TaskBoard);
+const mapStateToProps = state => ({
+  taskList: state.task.list,
+});
+
+const actionCreators = {
+  fetchTaskList,
+  searchTask,
+  setModalData,
+  setTaskEditData,
+  deleteTask
+};
+
+export default withStyles(styles)(
+  connect(
+    mapStateToProps,
+    actionCreators
+  )(TaskBoard)
+);

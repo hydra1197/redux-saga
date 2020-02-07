@@ -2,7 +2,7 @@ import React from 'react';
 import { Card, CardActions, CardContent, Grid, Typography, Fab, Icon, withStyles } from '@material-ui/core';
 import styles from './styles';
 
-const TaskItem = ({ classes, status, task }) => {
+const TaskItem = ({ classes, status, task, onClickUpdate, onClickDelete }) => {
   return (
     <Card>
       <CardContent>
@@ -18,10 +18,10 @@ const TaskItem = ({ classes, status, task }) => {
         <Typography component='p'>{ task.description }</Typography>
       </CardContent>
       <CardActions className={classes.actions}>
-        <Fab color='primary' aria-label='edit' size='small'>
+        <Fab color='primary' aria-label='edit' size='small' onClick={onClickUpdate}>
           <Icon fontSize='small'>edit_icon</Icon>
         </Fab>
-        <Fab color='primary' aria-label='edit' size='small'>
+        <Fab color='primary' aria-label='edit' size='small' onClick={onClickDelete}>
           <Icon fontSize='small'>delete_icon</Icon>
         </Fab>
       </CardActions>
